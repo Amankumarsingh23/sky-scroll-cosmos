@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.apodexplorer.app",
+    "sha256_cert_fingerprints": ["70:AC:DC:58:63:30:4B:9A:EA:8F:ED:07:8D:C7:0D:A1:2D:83:F9:64:93:BB:EF:50:34:FE:AA:5F:CE:F7:F5:C3"]
+  }
+}]
