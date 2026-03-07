@@ -14,7 +14,13 @@ function formatDate(d: Date) {
 }
 
 export default function ArchivePage() {
-  const [date, setDate] = useState(formatDate(new Date()));
+  const [searchParams] = useSearchParams();
+  const [date, setDate] = useState(searchParams.get("date") || formatDate(new Date()));
+
+  useEffect(() => {
+    const paramDate = searchParams.get("date");
+    if (paramDate) setDate(paramDate);
+  }, [searchParams]);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["apod", date],
