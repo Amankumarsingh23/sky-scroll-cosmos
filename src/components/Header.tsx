@@ -1,5 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
-import { Telescope, Calendar, Heart } from "lucide-react";
+import { Telescope, Calendar, Heart, Shuffle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { getRandomDate } from "@/services/apodApi";
 
 const tabs = [
   { path: "/", label: "Today", icon: Telescope },
@@ -9,6 +11,11 @@ const tabs = [
 
 export default function Header() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+
+  const handleRandom = () => {
+    navigate(`/archive?date=${getRandomDate()}`);
+  };
 
   return (
     <header className="sticky top-0 z-50 header-gradient backdrop-blur-xl border-b border-border">
@@ -35,6 +42,14 @@ export default function Header() {
               </Link>
             );
           })}
+          <button
+            onClick={handleRandom}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            title="Random APOD"
+          >
+            <Shuffle className="w-4 h-4" />
+            <span className="hidden sm:inline">Random</span>
+          </button>
         </nav>
       </div>
     </header>
