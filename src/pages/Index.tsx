@@ -2,14 +2,16 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchApod } from "@/services/apodApi";
 import ApodCard from "@/components/ApodCard";
 import ShimmerCard from "@/components/ShimmerCard";
-import { AlertCircle, RefreshCw } from "lucide-react";
+import ErrorState from "@/components/ErrorState";
+import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function TodayPage() {
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["apod-today"],
     queryFn: () => fetchApod(),
     staleTime: 10 * 60 * 1000,
+    retry: 2,
   });
 
   return (
@@ -22,15 +24,7 @@ export default function TodayPage() {
       </div>
 
       {isLoading && <ShimmerCard />}
-
-      {isError && (
-        <div className="rounded-lg bg-card p-8 text-center card-glow space-y-3">
-          <AlertCircle className="w-10 h-10 text-destructive mx-auto" />
-          <p className="text-muted-foreground">Failed to load today's picture.</p>
-          <Button variant="outline" onClick={() => refetch()}>Try Again</Button>
-        </div>
-      )}
-
+      {isError && <ErrorState error={error} onRetry={() => refetch()} />}
       {data && <ApodCard apod={data} />}
     </div>
   );

@@ -11,8 +11,21 @@ export interface ApodData {
   copyright?: string;
 }
 
+export interface ApodError {
+  type: "network" | "api" | "unknown";
+  message: string;
+  status?: number;
+}
+
 const cache = new Map<string, { data: ApodData; timestamp: number }>();
-const CACHE_DURATION = 10 * 60 * 1000; // 10 min
+const CACHE_DURATION = 10 * 60 * 1000;
+
+export function getRandomDate(): string {
+  const start = new Date("1995-06-16").getTime();
+  const end = new Date().getTime();
+  const rand = new Date(start + Math.random() * (end - start));
+  return rand.toISOString().split("T")[0];
+}
 
 export async function fetchApod(date?: string): Promise<ApodData> {
   const cacheKey = date || "today";
@@ -24,10 +37,30 @@ export async function fetchApod(date?: string): Promise<ApodData> {
   const params = new URLSearchParams({ api_key: API_KEY });
   if (date) params.append("date", date);
 
-  const res = await fetch(`${BASE_URL}?${params}`);
-  if (!res.ok) {
-    throw new Error(`API error: ${res.status}`);
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}?${params}`);
+  } catch (err) {
+    const error: ApodError = {
+      type: "network",
+      message: "Unable to connect. Please check your internet connection and try again.",
+    };
+    throw error;
   }
+
+  if (!res.ok) {
+    const error: ApodError = {
+      type: "api",
+      message: res.status === 429
+        ? "Too many requests. Please wait a moment and try again."
+        : res.status === 403
+        ? "API key issue. Please try again later."
+        : `Something went wrong (Error ${res.status}). Please try again.`,
+      status: res.status,
+    };
+    throw error;
+  }
+
   const data: ApodData = await res.json();
   cache.set(cacheKey, { data, timestamp: Date.now() });
   return data;

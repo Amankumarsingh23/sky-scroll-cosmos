@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchApod } from "@/services/apodApi";
+import { fetchApod, getRandomDate } from "@/services/apodApi";
 import ApodCard from "@/components/ApodCard";
 import ShimmerCard from "@/components/ShimmerCard";
+import ErrorState from "@/components/ErrorState";
 import { Input } from "@/components/ui/input";
-import { AlertCircle } from "lucide-react";
+import { Shuffle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 function formatDate(d: Date) {
@@ -14,16 +15,21 @@ function formatDate(d: Date) {
 export default function ArchivePage() {
   const [date, setDate] = useState(formatDate(new Date()));
 
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["apod", date],
     queryFn: () => fetchApod(date),
     staleTime: Infinity,
+    retry: 2,
   });
+
+  const handleRandom = () => {
+    setDate(getRandomDate());
+  };
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
       <h2 className="font-display text-2xl font-bold text-foreground">Browse Archive</h2>
-      <div className="flex gap-3 items-center">
+      <div className="flex gap-3 items-center flex-wrap">
         <Input
           type="date"
           value={date}
@@ -32,18 +38,14 @@ export default function ArchivePage() {
           onChange={(e) => setDate(e.target.value)}
           className="bg-secondary border-border text-foreground w-auto"
         />
+        <Button onClick={handleRandom} variant="outline" className="gap-2">
+          <Shuffle className="w-4 h-4" />
+          Random APOD
+        </Button>
       </div>
 
       {isLoading && <ShimmerCard />}
-
-      {isError && (
-        <div className="rounded-lg bg-card p-8 text-center card-glow space-y-3">
-          <AlertCircle className="w-10 h-10 text-destructive mx-auto" />
-          <p className="text-muted-foreground">No data for this date.</p>
-          <Button variant="outline" onClick={() => refetch()}>Try Again</Button>
-        </div>
-      )}
-
+      {isError && <ErrorState error={error} onRetry={() => refetch()} />}
       {data && <ApodCard apod={data} />}
     </div>
   );
